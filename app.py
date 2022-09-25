@@ -4,9 +4,20 @@ import json
 import time
 import dns.resolver
 import re
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine, MetaData, Table
+from prometheus_flask_exporter import PrometheusMetrics
 from flask import Flask,jsonify,request,abort
 
 app = Flask(__name__)
+metrics = PrometheusMetrics(app)
+metrics.info("app_info", "App Info", version="1.0.0")
+
+# DB initialization
+engine = create_engine("postgresql://postgres:secret#1@127.0.0.1:5432/postgres")
+metadata = MetaData(engine)
+DBSession = sessionmaker(bind=engine)
+db = DBSession()
 
 @app.errorhandler(400)
 def wrong_request(e):
@@ -37,18 +48,23 @@ def lookup():
         # configure=False - don't rely on /etc/resolv.conf
         resolver = dns.resolver.Resolver(configure=False)
         resolver.nameservers = ["1.1.1.1"]
-        
         response = dns.resolver.resolve(domain, "A")
         
-        records = [] 
+        records = []
         for ip in response:
             records.append(str(ip))
-        
+
+        created =  int(time.time())
+
+        lookup = Table('lookup', metadata, autoload=True)
+
+        engine.execute(lookup.insert().values(addresses = ','.join(records), client_ip = ip_address, created_at =
+                                              created, domain_name = domain))
+
         return json.dumps({'addresses': records,
                            'client_ip': ip_address,
-                           'created_at': int(time.time()),
+                           'created_at': created,
                            'domain': domain})
-
     except:
         abort(404, description="DNS records not found!")
 
@@ -68,5 +84,3 @@ def validate():
         return jsonify({'status': True })
     else:
         return jsonify({'status': False })
-
-# return jsonify({'version': ip_address})
