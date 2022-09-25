@@ -84,3 +84,7 @@ def validate():
         return jsonify({'status': True })
     else:
         return jsonify({'status': False })
+
+@app.route('/health')
+def health():
+    return jsonify({'status': 'ok'})
