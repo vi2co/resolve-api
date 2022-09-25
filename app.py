@@ -3,7 +3,9 @@
 import json
 import time
 import dns.resolver
+import re
 from flask import Flask,jsonify,request,abort
+
 app = Flask(__name__)
 
 @app.errorhandler(400)
@@ -49,3 +51,22 @@ def lookup():
 
     except:
         abort(404, description="DNS records not found!")
+
+@app.route('/v1/tools/validate', methods=['POST'])
+def validate():
+    ip = request.form['ip']
+
+    ip_regex = (
+        r"\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\."
+        r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\."
+        r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\."
+        r"(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b"
+    )
+
+    status = re.search(ip_regex, ip)
+    if status:
+        return jsonify({'status': True })
+    else:
+        return jsonify({'status': False })
+
+# return jsonify({'version': ip_address})
