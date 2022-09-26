@@ -59,7 +59,7 @@ def lookup():
 
         created =  int(time.time())
 
-        lookup = Table(app.config['LOOKUP_TABLE'], metadata, autoload=True)
+        lookup = Table(app.config['TABLE_NAME'], metadata, autoload=True)
 
         engine.execute(lookup.insert().values(addresses = ','.join(records), client_ip = ip_address, created_at =
                                               created, domain_name = domain))
