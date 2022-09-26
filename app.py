@@ -93,7 +93,7 @@ def history():
     output = []
 
     lookup = Table(app.config['TABLE_NAME'], metadata, autoload=True)
-    results = db.query(lookup).order_by(lookup.c.id.desc()).limit(5)
+    results = db.query(lookup).order_by(lookup.c.id.desc()).limit(20)
     count = results.count()
 
     for r in range(0, count):
