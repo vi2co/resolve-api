@@ -32,6 +32,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Python Linter
+      uses: sunnysid3up/python-linter@master
+      with:
+        mypy-options: "--ignore-missing-imports --show-error-codes"
+
     # Setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7
       with:
