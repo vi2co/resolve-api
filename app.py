@@ -7,7 +7,7 @@ import re
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine, MetaData, Table
 from prometheus_flask_exporter import PrometheusMetrics
-from flask import Flask,jsonify,request,abort
+from flask import Flask,jsonify,request,abort,Response
 
 app = Flask(__name__)
 app.config.from_pyfile('config.py')
@@ -87,6 +87,22 @@ def validate():
         return jsonify({'status': True })
     else:
         return jsonify({'status': False })
+
+@app.route('/v1/tools/history')
+def history():
+    output = []
+
+    lookup = Table(app.config['TABLE_NAME'], metadata, autoload=True)
+    results = db.query(lookup).order_by(lookup.c.id.desc()).limit(5)
+    count = results.count()
+
+    for r in range(0, count):
+        output.append({'addresses': results[r][1].split(','),
+                       'client_ip': results[r][2],
+                       'created_at': results[r][3],
+                       'domain': results[r][4]})
+
+    return Response(json.dumps(output), mimetype='application/json')
 
 @app.route('/health')
 def health():
