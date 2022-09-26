@@ -35,7 +35,13 @@ jobs:
     - name: Python Linter
       uses: sunnysid3up/python-linter@master
       with:
+        source: "."
+        strict: "low"
         mypy-options: "--ignore-missing-imports --show-error-codes"
+        pylint-options: "--rcfile=setup.cfg"
+        black-options: ""
+        isort-options: "-c=setup.cfg"
+        django: false
 
     # Setup gcloud CLI
     - uses: google-github-actions/setup-gcloud@94337306dda8180d967a56932ceb4ddcf01edae7

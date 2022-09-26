@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # encoding: utf-8
 import json
-import time
-import dns.resolver
 import re
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy import create_engine, MetaData, Table
+import time
+
+import dns.resolver
+from flask import Flask, Response, abort, jsonify, request
 from prometheus_flask_exporter import PrometheusMetrics
-from flask import Flask, jsonify, request, abort, Response
+from sqlalchemy import MetaData, Table, create_engine
+from sqlalchemy.orm import sessionmaker
 
 app = Flask(__name__)
 app.config.from_pyfile("config.py")
