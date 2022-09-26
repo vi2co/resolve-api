@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  serviceName: "postgres"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.dbGracePeriod }}
+      initContainers:
+      - name: init
+        image: busybox:1.28
+        command: ['sh', '-c', "rm -rfv /var/lib/postgresql/data/lost+found"]
+        volumeMounts:
+        - name: postgres-data-vol
+          mountPath: /var/lib/postgresql/data
+      containers:
+      - name: postgres
+        image: postgres:14
+        volumeMounts:
+        - name: postgres-data-vol
+          mountPath: /var/lib/postgresql/data
+        - name: pg-init-script
+          mountPath: /docker-entrypoint-initdb.d/pg-init-script.sh
+          subPath: pg-init-script.sh
+        env:
+          - name: POSTGRES_USER
+            valueFrom:
+              secretKeyRef:
+                name: dbsecret 
+                key: username
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: dbsecret 
+                key: password
+        ports:
+          - name: postgres
+            containerPort: 5432
+            protocol: TCP
+        resources:
+          {{- toYaml .Values.dbResources | nindent 12 }}
+      volumes:
+        - name: postgres-data-vol
+          persistentVolumeClaim:
+            claimName: postgres-data
+        - name: pg-init-script
+          configMap:
+            name: pg-init-script.sh

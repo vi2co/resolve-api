@@ -1,0 +1,35 @@
+# Default values for resolve-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+appReplicaCount: 1
+
+appImage:
+  repository: gcr.io/gke-project-346501/resolve-api
+  pullPolicy: Always
+  tag: "latest"
+
+appPort: 3000
+appGracePeriod: 30
+appResources:
+  limits:
+    cpu: 512m 
+    memory: 512Mi 
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+dbImage:
+  repository: postgres
+  pullPolicy: IfNotPresent
+  tag: "14"
+
+dbPort: 5432
+dbGracePeriod: 30
+dbResources:
+  limits:
+    cpu: 512m 
+    memory: 2048Mi 
+  requests:
+    cpu: 1024m
+    memory: 4096Mi

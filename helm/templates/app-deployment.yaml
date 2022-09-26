@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "resolve-app.fullname" . }}
+  labels:
+    {{- include "resolve-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.appReplicaCount }}
+  selector:
+    matchLabels:
+      {{- include "resolve-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "resolve-app.selectorLabels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.appGracePeriod }}
+      containers:
+        - name: resolve-app
+          securityContext:
+          image: "{{ .Values.appImage.repository }}:{{ .Values.appImage.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.appImage.pullPolicy }}
+          env:
+            - name: NAMESERVER
+              value: 1.1.1.1
+            - name: TABLE_NAME
+              value: lookup
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: dbsecret 
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dbsecret 
+                  key: password
+            - name: DB_NAME
+              value: postgres
+            - name: DB_URI
+              value: postgresql://$(DB_USER):$(DB_PASSWORD)@postgres:5432/$(DB_NAME)
+          ports:
+            - name: flask
+              containerPort: {{ .Values.appPort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: flask
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: flask
+          resources:
+            {{- toYaml .Values.appResources | nindent 12 }}

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "resolve-app.fullname" . }}
+  labels:
+    {{- include "resolve-app.labels" . | nindent 4 }}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: {{ .Values.appPort }}
+      targetPort: flask
+      protocol: TCP
+      name: flask
+  selector:
+    {{- include "resolve-app.selectorLabels" . | nindent 4 }}
