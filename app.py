@@ -10,11 +10,14 @@ from prometheus_flask_exporter import PrometheusMetrics
 from flask import Flask,jsonify,request,abort
 
 app = Flask(__name__)
+app.config.from_pyfile('config.py')
+
+# Prometheus metrics
 metrics = PrometheusMetrics(app)
 metrics.info("app_info", "App Info", version="1.0.0")
 
 # DB initialization
-engine = create_engine("postgresql://postgres:secret#1@127.0.0.1:5432/postgres")
+engine = create_engine(app.config['DB_URI'])
 metadata = MetaData(engine)
 DBSession = sessionmaker(bind=engine)
 db = DBSession()
@@ -47,7 +50,7 @@ def lookup():
     try:
         # configure=False - don't rely on /etc/resolv.conf
         resolver = dns.resolver.Resolver(configure=False)
-        resolver.nameservers = ["1.1.1.1"]
+        resolver.nameservers = [app.config['NAMESERVER']]
         response = dns.resolver.resolve(domain, "A")
         
         records = []
@@ -56,7 +59,7 @@ def lookup():
 
         created =  int(time.time())
 
-        lookup = Table('lookup', metadata, autoload=True)
+        lookup = Table(app.config['LOOKUP_TABLE'], metadata, autoload=True)
 
         engine.execute(lookup.insert().values(addresses = ','.join(records), client_ip = ip_address, created_at =
                                               created, domain_name = domain))
@@ -88,3 +91,4 @@ def validate():
 @app.route('/health')
 def health():
     return jsonify({'status': 'ok'})
+
