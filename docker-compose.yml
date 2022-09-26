@@ -11,6 +11,17 @@ services:
     volumes: 
       - db:/var/lib/postgresql/data
       - ./scripts/pg-init-script.sh:/docker-entrypoint-initdb.d/pg-init-script.sh
+  web:
+    build: .
+    restart: always
+    environment:
+      - NAMESERVER=1.1.1.1
+      - TABLE_NAME=lookup
+      - DB_URI=postgresql://postgres:secret#1@db:5432/postgres
+    ports:
+      - "3000:3000"
+    links:
+      - db
 
 volumes:
   db:
