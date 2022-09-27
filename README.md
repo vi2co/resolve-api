@@ -1,5 +1,5 @@
 # Response app
-## Start the app
+## Development environment set-up
 In order to start development environment Docker and docker-compose and jq (for better visual
 representation) should be installed.
 
@@ -105,3 +105,40 @@ $ curl -s http://127.0.0.1:3000/v1/tools/history | jq .
   }
 ]
 ```
+
+## GCP Production environment setup
+Follow the official Github Docs instruction to prepare GitHub Actions and create Google Cloud Kubernetes engine: [Deploying to Google Kubernetes Engine](https://docs.github.com/en/actions/deployment/deploying-to-your-cloud-provider/deploying-to-google-kubernetes-engine).
+
+Create the namespace if needed:
+```
+# get kubectl credentials 
+gcloud container clusters get-credentials $GKE_CLUSTER --region=$GKE_REGION
+# create the namespace
+kubectl create namespace resolver-qa
+```
+Copy over this source code and push it to your GitHub repo.
+
+GitHub automatically builds the code for the main git branch and deploy the application to the cluster.
+In the end Kubernets exposes the application to the internet on TCP 3000 port.
+
+To get public IP address run:
+```
+$ kubectl get services --namespace resolver-qa
+NAME          TYPE           CLUSTER-IP    EXTERNAL-IP   PORT(S)          AGE
+postgres      ClusterIP      10.95.0.128   <none>        5432/TCP         3h36m
+resolve-app   LoadBalancer   10.95.3.60    34.94.244.2   3000:30281/TCP   3h36m
+```
+34.94.244.2 is the public IP address which can be queried:
+```
+$ curl -s http://34.94.244.2:3000/v1/tools/lookup?domain=amazon.com | jq .
+{
+  "addresses": [
+    "205.251.242.103",
+    "54.239.28.85",
+    "52.94.236.248"
+  ],
+  "client_ip": "10.168.0.12",
+  "created_at": 1664239448,
+  "domain": "amazon.com"
+}
+``` 
