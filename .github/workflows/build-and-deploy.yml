@@ -40,7 +40,7 @@ jobs:
         mypy-options: "--ignore-missing-imports --show-error-codes"
         pylint-options: "--rcfile=setup.cfg"
         black-options: ""
-        isort-options: "-c=setup.cfg"
+        isort-options: ""
         django: false
 
     # Setup gcloud CLI
